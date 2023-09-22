@@ -1,7 +1,7 @@
-from flask import Flask, Blueprint, request, jsonify
-import pandas as pd
+from fastapi import FastAPI, Query
 
-app_porcentaje = Blueprint('app_porcentaje', __name__)
+app_porcentaje = FastAPI()
+import pandas as pd
 
 # DataFrame desde el archivo CSV
 df = pd.read_csv('usuario_reviews_sinfechas_nulos.csv')
@@ -10,18 +10,16 @@ df = pd.read_csv('usuario_reviews_sinfechas_nulos.csv')
 fecha_minima = pd.to_datetime('2011-01-01')
 fecha_maxima = pd.to_datetime('2016-12-31')
 
-@app_porcentaje.route('/calcular_porcentaje_y_cantidad', methods=['GET'])  # Cambio aquí
-def calcular_porcentaje_y_cantidad_api():
-    fecha_ini = request.args.get('fecha_ini')
-    fecha_fin = request.args.get('fecha_fin')
-    
+@app_porcentaje.get('/calcular_porcentaje_y_cantidad')  # Cambio aquí
+async def calcular_porcentaje_y_cantidad_api(fecha_ini: str = Query(..., description="Fecha de inicio"),
+                                             fecha_fin: str = Query(..., description="Fecha de fin")):
     try:
         fecha_ini = pd.to_datetime(fecha_ini, errors='coerce')
         fecha_fin = pd.to_datetime(fecha_fin, errors='coerce')
         
         # Valida que las fechas estén dentro del rango permitido
         if fecha_ini < fecha_minima or fecha_fin > fecha_maxima:
-            return jsonify({"error": "Las fechas están fuera del rango permitido"})
+            return {"error": "Las fechas están fuera del rango permitido"}
         
         df['fecha_convertida'] = pd.to_datetime(df['fecha_convertida'], errors='coerce')
         
@@ -37,9 +35,9 @@ def calcular_porcentaje_y_cantidad_api():
             'porcentaje_recomendacion': porcentaje_recomendacion
         }
         
-        return jsonify(resultado)
+        return resultado
     
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return {'error': str(e)}
 
 

@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
+from fastapi import FastAPI, Query
+
+app_userdata = FastAPI()
 import pandas as pd
-app_userdata = Blueprint('app_userdata', __name__)
 
 # Cargar los datos desde el archivo CSV
 df = pd.read_csv('resultado_union_actualizado.csv')
@@ -34,11 +35,7 @@ def userdata(User_id: str):
         "num_items": num_items
     }
 
-@app_userdata.route('/user_data', methods=['GET'])
-def get_user_data():
-    User_id = request.args.get('user_id')
-    if User_id:
-        data = userdata(User_id)
-        return jsonify(data)
-    else:
-        return jsonify({"error": "User_id parameter is required."}), 400
+@app_userdata.get('/user_data')
+async def get_user_data(user_id: str = Query(..., description="User ID")):
+    data = userdata(user_id)
+    return data

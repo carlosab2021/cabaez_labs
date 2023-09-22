@@ -1,8 +1,6 @@
-from flask import Flask, Blueprint, request, jsonify
-import pandas as pd
-import numpy as np
+from fastapi import FastAPI, HTTPException, Query
 
-app_desarrollador = Blueprint('app_desarrollador', __name__)
+app = FastAPI()
 
 # Función para obtener el resumen de un desarrollador
 def developer(desarrollador):
@@ -36,26 +34,21 @@ def developer(desarrollador):
         return resultados.to_dict(orient='records')
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Función para calcular el porcentaje de contenido gratuito por año (manejo de valores nulos y formas)
 def calculate_percentage(free_to_play, total_items):
     if len(free_to_play) == 0 or len(total_items) == 0:
-        return np.zeros_like(total_items)  # Si uno de los arreglos está vacío, retorna ceros
+        return [0] * len(total_items)  # Si uno de los arreglos está vacío, retorna una lista de ceros
     
-    return np.divide(free_to_play, total_items, out=np.zeros_like(total_items), where=total_items != 0) * 100
+    return [round((a / b) * 100, 2) if b != 0 else 0 for a, b in zip(free_to_play, total_items)]
 
 # Ruta para obtener el resumen de un desarrollador
-@app_desarrollador.route('/resumen_desarrollador', methods=['GET'])
-def obtener_resumen_desarrollador():
-    desarrollador = request.args.get('desarrollador')
-
-    if not desarrollador:
-        return jsonify({"error": "Por favor, proporcione un nombre de desarrollador para buscar."})
-
+@app.get("/resumen_desarrollador")
+async def obtener_resumen_desarrollador(desarrollador: str = Query(..., description="Nombre del desarrollador")):
     resumen = developer(desarrollador)
+    return {"resumen": resumen}
 
-    return jsonify({"resumen": resumen})
 
 
 
