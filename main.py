@@ -1,13 +1,23 @@
 from fastapi import FastAPI
-from app.app_porcentaje import app_porcentaje
-from app.app_genero import app_genero
-from app.app_genero_horas import app_genero_horas
-from app.app_userdata import app_userdata
+import pandas as pd
 
 app = FastAPI()
 
-# Registra las rutas para cada aplicación
-app.include_router(app_porcentaje, prefix="/porcentaje", tags=["porcentaje"])
-app.include_router(app_genero, prefix="/genero", tags=["genero"])
-app.include_router(app_genero_horas, prefix="/genero_horas", tags=["genero_horas"])
-app.include_router(app_userdata, prefix="/user_data", tags=["user_data"])
+df = pd.read_csv('resultado_union_actualizado.csv')
+@app.get("/buscar_genero/")
+def buscar_genero(genero: str):
+    # Lógica para buscar el género en el DataFrame
+    genero_df = df[df['genres'].str.contains(genero, case=False, na=False)]
+
+    if genero_df.empty:
+        return {"message": f"El género '{genero}' no se encuentra en el dataset."}
+    else:
+        ranking = genero_df['playtime_forever'].rank(ascending=False, method='min').iloc[0]
+        return {"message": f"El género '{genero}' está en el puesto {int(ranking)} en el ranking de acuerdo a 'playtime_forever'."}
+
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
