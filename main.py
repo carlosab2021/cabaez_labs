@@ -1,19 +1,22 @@
-from flask import Flask
-from app.app_porcentaje import app_porcentaje
-from app.app_genero import app_genero
-from app.app_genero_horas import app_genero_horas
-from app.app_desarrollador import app_desarrollador
-from app.app_userdata import app_userdata
+from fastapi import FastAPI
+from app.PlayTimeGenre import app as PlayTimeGenre
+from app.sentiment_analysis import app as SentimentAnalysis
+from app.UserForGenre import app as UserForGenre
+from app.UsersNotRecommend import app as UsersNotRecommend
+from app.UsersRecommend import app as UsersRecommend
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Registra las rutas para cada aplicación
-app.register_blueprint(app_porcentaje, url_prefix='/porcentaje')
-app.register_blueprint(app_genero, url_prefix='/genero')
-app.register_blueprint(app_genero_horas, url_prefix='/genero_horas')
-app.register_blueprint(app_desarrollador, url_prefix='/desarrollador')
-app.register_blueprint(app_userdata, url_prefix='/user_data')
+# Monta las subaplicaciones FastAPI en sus rutas respectivas
+main_app.mount("/PlayTimeGenre", PlayTimeGenre)
+main_app.mount("/sentiment_analysis", SentimentAnalysis)
+main_app.mount("/UserForGenre", UserForGenre)
+main_app.mount("/UsersNotRecommend", UsersNotRecommend)
+main_app.mount("/UsersRecommend", UsersRecommend)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
